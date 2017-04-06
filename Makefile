@@ -7,3 +7,6 @@ requirements:
 
 build:
 	go build *.go
+
+reset:
+	rm -rf cache cache.db
