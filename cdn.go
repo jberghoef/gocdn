@@ -21,7 +21,7 @@ var db *bolt.DB
 
 /* requestHandler
 Decides whether to serve a local file or redirect to the original file.
-Will consequently trigger a request to retreive the file when unavailable.
+Will consequently trigger a request to retrieve the file when unavailable.
 ================================================================================ */
 func requestHandler(w http.ResponseWriter, r *http.Request) {
 	localFile := filepath.Join(cacheDir + r.URL.Path)
@@ -37,11 +37,11 @@ func requestHandler(w http.ResponseWriter, r *http.Request) {
 			relPath, _ := filepath.Rel(cacheDir, localFile)
 			emoji.Println(":floppy_disk: Serving cached source:", relPath)
 		} else {
-			go verifyAndRetreiveFile(localFile, originURL)
+			go verifyAndRetrieveFile(localFile, originURL)
 			redirectResponse(w, r, originURL)
 		}
 	} else {
-		go verifyAndRetreiveFile(localFile, originURL)
+		go verifyAndRetrieveFile(localFile, originURL)
 		redirectResponse(w, r, originURL)
 	}
 	return

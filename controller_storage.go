@@ -16,12 +16,12 @@ import (
 	emoji "gopkg.in/kyokomi/emoji.v1"
 )
 
-/* verifyAndRetreiveFile
-Checks original source for the requested file and retreives it when available.
+/* verifyAndRetrieveFile
+Checks original source for the requested file and retrieves it when available.
 ================================================================================ */
-func verifyAndRetreiveFile(localFile string, originURL string) {
+func verifyAndRetrieveFile(localFile string, originURL string) {
 
-	// Retreive and verify the Headers before moving forward
+	// Retrieve and verify the Headers before moving forward
 	response, err := http.Head(originURL)
 	if err != nil {
 		fmt.Println("Error while retreiving Headers from", originURL, "\n-", err)
@@ -36,7 +36,7 @@ func verifyAndRetreiveFile(localFile string, originURL string) {
 
 		if ignore != true {
 
-			// Retreive file from host
+			// Retrieve file from host
 			response, err := http.Get(originURL)
 			if err == nil {
 
@@ -79,7 +79,7 @@ func verifyAndRetreiveFile(localFile string, originURL string) {
 }
 
 /* registerFileToDb
-Registers metadata of the retreived file to the database.
+Registers metadata of the retrieved file to the database.
 ================================================================================ */
 func registerFileToDb(originURL string, localFile string, maxAge int, revalidate bool, header http.Header) {
 

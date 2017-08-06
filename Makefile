@@ -1,4 +1,4 @@
-default: requirements build
+default: requirements test build
 
 requirements:
 	go get github.com/boltdb/bolt
@@ -7,6 +7,9 @@ requirements:
 
 build:
 	go build *.go
+
+test:
+	go test -v
 
 reset:
 	rm -rf cache cache.db
