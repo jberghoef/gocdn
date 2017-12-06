@@ -1,9 +1,4 @@
-default: requirements test build
-
-requirements:
-	go get github.com/boltdb/bolt
-	go get github.com/carlescere/scheduler
-	go get gopkg.in/kyokomi/emoji.v1
+all: reset go_download go_install test build
 
 build:
 	go build *.go
@@ -13,3 +8,13 @@ test:
 
 reset:
 	rm -rf cache cache.db
+
+install:
+	go get -d -v
+	go install -v
+
+docker_build:
+	docker build -t gocdn .
+
+docker_run:
+	docker run -it --rm --name gocdn gocdn
