@@ -10,12 +10,13 @@ import (
 
 	"github.com/boltdb/bolt"
 	"github.com/carlescere/scheduler"
-	emoji "gopkg.in/kyokomi/emoji.v1"
+	"gopkg.in/kyokomi/emoji.v1"
 	"encoding/json"
 )
 
 var protocol = flag.String("protocol", "", "The protocol used by your website.")
 var origin = flag.String("origin", "", "The original location of your website.")
+var minify = flag.Bool("minify", false, "Whether stored files should be minified.")
 var cacheDir string
 var db *bolt.DB
 

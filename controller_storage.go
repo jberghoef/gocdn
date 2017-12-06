@@ -13,7 +13,7 @@ import (
 
 	"encoding/json"
 
-	emoji "gopkg.in/kyokomi/emoji.v1"
+	"gopkg.in/kyokomi/emoji.v1"
 )
 
 /* verifyAndRetrieveFile
@@ -86,14 +86,15 @@ func registerFileToDb(originURL string, localFile string, maxAge int, revalidate
 	refHash := createHash(originURL)
 
 	file := File{
-		Reference:  refHash,
-		URL:        originURL,
-		LocalFile:  localFile,
-		Timestamp:  time.Now().Unix(),
-		MaxAge:     int64(maxAge),
-		Revalidate: revalidate,
-		ETAG:       header.Get("etag"),
-		Header:     header}
+		Reference:   refHash,
+		URL:         originURL,
+		LocalFile:   localFile,
+		Timestamp:   time.Now().Unix(),
+		MaxAge:      int64(maxAge),
+		Revalidate:  revalidate,
+		ETAG:        header.Get("etag"),
+		ContentType: header.Get("Content-Type"),
+		Header:      header}
 
 	fileJSON, _ := json.Marshal(file)
 

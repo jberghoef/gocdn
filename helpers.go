@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	emoji "gopkg.in/kyokomi/emoji.v1"
+	"gopkg.in/kyokomi/emoji.v1"
 
 	"github.com/boltdb/bolt"
 )
@@ -23,9 +23,11 @@ func verifyContentType(header http.Header) (allowed bool) {
 	contentTypes := strings.Split(header.Get("Content-Type"), "; ")
 	allowed = false
 
-	allowedFormats := [16]string{
+	allowedFormats := [18]string{
 		"text/css",
+		"text/html",
 		"text/javascript",
+		"image/svg+xml",
 		"image/vnd.microsoft.icon",
 		"image/x-icon",
 		"image/gif",
