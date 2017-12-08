@@ -1,4 +1,4 @@
-all: reset go_download go_install test build
+all: reset install test build
 
 build:
 	go build *.go
