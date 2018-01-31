@@ -1,6 +1,6 @@
 pipeline:
   build:
-    image: golang
+    image: golang:latest
     commands:
       - go get
       - go build
