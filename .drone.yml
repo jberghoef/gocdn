@@ -2,7 +2,7 @@ pipeline:
   build:
     image: golang:latest
     commands:
-      - export GOPATH=$PATH:/go
+      - export PATH=$PATH:/go
       - go get
       - go build
       - go test
