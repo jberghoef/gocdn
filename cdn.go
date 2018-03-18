@@ -135,6 +135,7 @@ func main() {
 		return
 	}
 
+	fmt.Println("GoCDN up and running!")
 
 	scheduler.Every(5).Minutes().Run(cleanCache)
 }
