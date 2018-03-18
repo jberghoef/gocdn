@@ -2,6 +2,13 @@ pipeline:
   build:
     image: golang:latest
     commands:
-      - go install
+      - export GOPATH=$PATH:/go
+      - go get
       - go build
       - go test
+
+  publish:
+    image: plugins/docker
+    repo: 192.168.10.250:4443/jberghoef/gocdn
+    tags: [ latest ]
+    registry: 192.168.10.250:4443
