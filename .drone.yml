@@ -2,8 +2,8 @@ pipeline:
   build:
     image: golang:latest
     commands:
-      - export PATH=$PATH:$(go env GOPATH)/bin
-      - export GOPATH=$(go env GOPATH)
+      - export PATH=$PATH:$(pwd)/go/bin
+      - export GOPATH=$(pwd)/go
       - go get
       - go build
       - go test
