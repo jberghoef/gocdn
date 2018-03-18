@@ -2,6 +2,6 @@ pipeline:
   build:
     image: golang:latest
     commands:
-      - go get
+      - go install
       - go build
       - go test
