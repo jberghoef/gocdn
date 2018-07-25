@@ -35,14 +35,12 @@ func requestHandler(w http.ResponseWriter, r *http.Request) {
 
 			relPath, _ := filepath.Rel(cacheDir, localFile)
 			emoji.Println(":floppy_disk: Serving cached source:", relPath)
-		} else {
-			go verifyAndRetrieveFile(localFile, originURL)
-			redirectResponse(w, r, originURL)
+			return
 		}
-	} else {
-		go verifyAndRetrieveFile(localFile, originURL)
-		redirectResponse(w, r, originURL)
 	}
+
+	go verifyAndRetrieveFile(localFile, originURL)
+	redirectResponse(w, r, originURL)
 	return
 }
 
@@ -94,7 +92,7 @@ func init() {
 	}
 
 	if *protocol == "" || *origin == "" {
-		fmt.Println("Please provide a protocol and origin. Use '--help' for more information.")
+		fmt.Println("Please provide a protocol and origin.\nUse '--help' for more information.")
 		os.Exit(1)
 	}
 }
