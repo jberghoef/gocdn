@@ -8,10 +8,11 @@ import (
 	"os"
 	"path/filepath"
 
+	"encoding/json"
+
 	"github.com/boltdb/bolt"
 	"github.com/carlescere/scheduler"
 	emoji "gopkg.in/kyokomi/emoji.v1"
-	"encoding/json"
 )
 
 var protocol = flag.String("protocol", "", "The protocol used by your website.")
@@ -92,19 +93,30 @@ func init() {
 			return
 		}
 	}
+
+	flag.Parse()
+
+	if *protocol == "" {
+		*protocol = os.Getenv("PROTOCOL")
+	}
+
+	if *origin == "" {
+		*origin = os.Getenv("ORIGIN")
+	}
+
+	if *protocol == "" || *origin == "" {
+		fmt.Println(`
+			Please provide a protocol and origin.\n
+			Use '--help' for more information.
+		`)
+		return
+	}
 }
 
 /* main
 Spins up the awesomeness.
 ================================================================================ */
 func main() {
-	flag.Parse()
-
-	if *protocol == "" || *origin == "" {
-		fmt.Println("Please provide a protocol and origin.\nUse '--help' for more information.")
-		return
-	}
-
 	// Open database
 	var err error
 	db, err = bolt.Open("cache.db", 0600, nil)
@@ -121,10 +133,14 @@ func main() {
 		return nil
 	})
 
+	scheduler.Every(5).Minutes().Run(cleanCache)
+
 	// Start HTTP server
 	http.HandleFunc("/", requestHandler)
 
-	switch{
+	fmt.Println("Listening on port", ":8080")
+
+	switch {
 	case *protocol == "http":
 		http.ListenAndServe(":8080", nil)
 	case *protocol == "https":

@@ -1,7 +1,7 @@
 all: reset install test build
 
 build:
-	go build *.go
+	go build -o gocdn *.go
 
 test:
 	go test -v
@@ -10,8 +10,7 @@ reset:
 	rm -rf cache cache.db
 
 install:
-	go get -d -v
-	go install -v
+	dep ensure
 
 docker_build:
 	docker build -t gocdn .

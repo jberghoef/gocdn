@@ -60,7 +60,7 @@ func verifyAndRetrieveFile(localFile string, originURL string) {
 					}
 
 					relPath, _ := filepath.Rel(cacheDir, localFile)
-					emoji.Println("\t:truck: Retreiving file:", originURL, "\n\t:memo: Writing", n, "bytes to", relPath)
+					emoji.Println("\t:truck: Retrieving file:", originURL, "\n\t:memo: Writing", n, "bytes to", relPath)
 
 					go registerFileToDb(originURL, relPath, maxAge, revalidate, response.Header)
 

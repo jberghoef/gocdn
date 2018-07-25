@@ -1,9 +1,13 @@
-FROM golang:1.9.2
+FROM golang:1.10.3
+
+ENV PROTOCOL=https
+ENV ORIGIN=www.example.com
 
 WORKDIR /go/src/app
 COPY . .
 
-RUN go-wrapper download
-RUN go-wrapper install
+RUN go get -d -v ./...
+RUN go install -v ./...
+RUN go build .
 
-CMD ["go-wrapper", "run"]
+CMD ["app"]
