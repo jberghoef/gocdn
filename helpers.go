@@ -18,12 +18,12 @@ import (
 
 /* verifyContentType
 Reads the original response headers to parse the content type.
-================================================================================ */
+====================================================================== */
 func verifyContentType(header http.Header) (allowed bool) {
 	contentTypes := strings.Split(header.Get("Content-Type"), "; ")
 	allowed = false
 
-	allowedFormats := [16]string{
+	allowedFormats := [17]string{
 		"text/css",
 		"text/javascript",
 		"image/vnd.microsoft.icon",
@@ -55,7 +55,7 @@ func verifyContentType(header http.Header) (allowed bool) {
 
 /* defineCacheControl
 Reads the original response headers to parse Cache-Control rules.
-================================================================================ */
+====================================================================== */
 func defineCacheControl(header http.Header) (ignore bool, revalidate bool, maxAge int) {
 	cacheRules := strings.Split(header.Get("Cache-Control"), ", ")
 	ignore = false
@@ -83,7 +83,7 @@ func defineCacheControl(header http.Header) (ignore bool, revalidate bool, maxAg
 
 /* createHash
 Creates a hash based on the origin url.
-================================================================================ */
+====================================================================== */
 func createHash(originURL string) (refHash string) {
 	h := md5.New()
 	h.Write([]byte(originURL))
@@ -92,22 +92,9 @@ func createHash(originURL string) (refHash string) {
 	return refHash
 }
 
-/* removeFile
-Removes to referenced file and it's database entry.
-================================================================================ */
-func removeFile(file File) {
-	db.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("Cache"))
-		b.Delete([]byte(file.Reference))
-		return nil
-	})
-
-	os.Remove(file.LocalFile)
-}
-
 /* cleanCache
 Checks the entire database for expired files.
-================================================================================ */
+====================================================================== */
 func cleanCache() {
 	now := time.Now().Unix()
 

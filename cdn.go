@@ -8,8 +8,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"encoding/json"
-
 	"github.com/boltdb/bolt"
 	"github.com/carlescere/scheduler"
 	emoji "gopkg.in/kyokomi/emoji.v1"
@@ -23,7 +21,7 @@ var db *bolt.DB
 /* requestHandler
 Decides whether to serve a local file or redirect to the original file.
 Will consequently trigger a request to retrieve the file when unavailable.
-================================================================================ */
+====================================================================== */
 func requestHandler(w http.ResponseWriter, r *http.Request) {
 	localFile := filepath.Join(cacheDir + r.URL.Path)
 	originURL := *protocol + "://" + *origin + r.URL.Path
@@ -49,17 +47,8 @@ func requestHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func sendResponse(w http.ResponseWriter, r *http.Request, originURL string, localFile string) {
-	refHash := createHash(originURL)
-
 	file := File{}
-
-	db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("Cache"))
-		v := b.Get([]byte(refHash))
-
-		json.Unmarshal(v, &file)
-		return nil
-	})
+	file.Retrieve(originURL)
 
 	for k := range file.Header {
 		w.Header().Set(k, file.Header.Get(k))
@@ -80,7 +69,7 @@ func redirectResponse(w http.ResponseWriter, r *http.Request, originURL string) 
 
 /* init
 Prepares the awesomeness.
-================================================================================ */
+====================================================================== */
 func init() {
 	dir, _ := os.Getwd()
 	cacheDir = filepath.Join(dir + "/cache")
@@ -105,17 +94,14 @@ func init() {
 	}
 
 	if *protocol == "" || *origin == "" {
-		fmt.Println(`
-			Please provide a protocol and origin.\n
-			Use '--help' for more information.
-		`)
-		return
+		fmt.Println("Please provide a protocol and origin. Use '--help' for more information.")
+		os.Exit(1)
 	}
 }
 
 /* main
 Spins up the awesomeness.
-================================================================================ */
+====================================================================== */
 func main() {
 	// Open database
 	var err error
@@ -132,8 +118,6 @@ func main() {
 		}
 		return nil
 	})
-
-	scheduler.Every(5).Minutes().Run(cleanCache)
 
 	// Start HTTP server
 	http.HandleFunc("/", requestHandler)

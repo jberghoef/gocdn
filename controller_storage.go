@@ -18,7 +18,7 @@ import (
 
 /* verifyAndRetrieveFile
 Checks original source for the requested file and retrieves it when available.
-================================================================================ */
+====================================================================== */
 func verifyAndRetrieveFile(localFile string, originURL string) {
 
 	// Retrieve and verify the Headers before moving forward
@@ -62,7 +62,17 @@ func verifyAndRetrieveFile(localFile string, originURL string) {
 					relPath, _ := filepath.Rel(cacheDir, localFile)
 					emoji.Println("\t:truck: Retrieving file:", originURL, "\n\t:memo: Writing", n, "bytes to", relPath)
 
-					go registerFileToDb(originURL, relPath, maxAge, revalidate, response.Header)
+					file := File{
+						Reference:  createHash(originURL),
+						URL:        originURL,
+						LocalFile:  localFile,
+						Timestamp:  time.Now().Unix(),
+						MaxAge:     int64(maxAge),
+						Revalidate: revalidate,
+						ETAG:       response.Header.Get("etag"),
+						Header:     response.Header}
+
+					file.Register()
 
 				} else {
 					fmt.Println("Unable to create directory for cache file!")
@@ -78,35 +88,9 @@ func verifyAndRetrieveFile(localFile string, originURL string) {
 	}
 }
 
-/* registerFileToDb
-Registers metadata of the retrieved file to the database.
-================================================================================ */
-func registerFileToDb(originURL string, localFile string, maxAge int, revalidate bool, header http.Header) {
-
-	refHash := createHash(originURL)
-
-	file := File{
-		Reference:  refHash,
-		URL:        originURL,
-		LocalFile:  localFile,
-		Timestamp:  time.Now().Unix(),
-		MaxAge:     int64(maxAge),
-		Revalidate: revalidate,
-		ETAG:       header.Get("etag"),
-		Header:     header}
-
-	fileJSON, _ := json.Marshal(file)
-
-	db.Batch(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("Cache"))
-		err := b.Put([]byte(refHash), fileJSON)
-		return err
-	})
-}
-
 /* validateCache
 Checks whether the file is still valid based on saved cache rules.
-================================================================================ */
+====================================================================== */
 func validateCache(originURL string) (valid bool) {
 	now := time.Now().Unix()
 	refHash := createHash(originURL)
@@ -142,8 +126,7 @@ func validateCache(originURL string) (valid bool) {
 	if !valid {
 		relPath, _ := filepath.Rel(cacheDir, file.LocalFile)
 		emoji.Println(":anger: File no longer valid:", relPath)
-
-		go removeFile(file)
+		file.Remove()
 	}
 
 	return valid
