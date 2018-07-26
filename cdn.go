@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 
 	"github.com/boltdb/bolt"
+	"gopkg.in/kyokomi/emoji.v1"
 	"github.com/carlescere/scheduler"
-	emoji "gopkg.in/kyokomi/emoji.v1"
 )
 
 var protocol = flag.String("protocol", "", "The protocol used by your website.")
@@ -39,8 +39,7 @@ func requestHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	go verifyAndRetrieveFile(localFile, originURL)
-	redirectResponse(w, r, originURL)
+	verifyAndRetrieveFile(localFile, originURL, w, r)
 	return
 }
 
@@ -58,11 +57,6 @@ func sendResponse(w http.ResponseWriter, r *http.Request, originURL string, loca
 		return
 	}
 	fmt.Fprintf(w, "%s", data)
-}
-
-func redirectResponse(w http.ResponseWriter, r *http.Request, originURL string) {
-	emoji.Println(":surfer: Redirecting to origin:", originURL)
-	http.Redirect(w, r, originURL, 302)
 }
 
 /* init
@@ -117,9 +111,10 @@ func main() {
 		return nil
 	})
 
+	scheduler.Every(5).Minutes().Run(cleanCache)
+
 	// Start HTTP server
 	http.HandleFunc("/", requestHandler)
-
 	fmt.Println("Listening on port", ":8080")
 
 	switch {
@@ -132,8 +127,4 @@ func main() {
 		fmt.Println("Protocol not recognized.\nPlease choose between 'http' and 'https'.")
 		return
 	}
-
-	fmt.Println("GoCDN up and running!")
-
-	scheduler.Every(5).Minutes().Run(cleanCache)
 }

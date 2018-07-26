@@ -2,9 +2,7 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"net/http"
-	"os"
 	"path/filepath"
 
 	"github.com/boltdb/bolt"
@@ -13,33 +11,41 @@ import (
 
 	"encoding/json"
 
-	emoji "gopkg.in/kyokomi/emoji.v1"
+	"gopkg.in/kyokomi/emoji.v1"
+	"os"
+	"io"
+	"bytes"
 )
 
 /* verifyAndRetrieveFile
 Checks original source for the requested file and retrieves it when available.
 ====================================================================== */
-func verifyAndRetrieveFile(localFile string, originURL string) {
+func verifyAndRetrieveFile(localFile string, originURL string, w http.ResponseWriter, r *http.Request) {
 
 	// Retrieve and verify the Headers before moving forward
-	response, err := http.Head(originURL)
+	head, err := http.Head(originURL)
 	if err != nil {
 		fmt.Println("Error while retreiving Headers from", originURL, "\n-", err)
 		return
 	}
 
-	allowed := verifyContentType(response.Header)
+	if head.StatusCode == http.StatusOK {
+		// Retrieve file from host
+		response, err := http.Get(originURL)
+		defer response.Body.Close()
 
-	// Check if we need to download the file
-	if response.StatusCode == http.StatusOK && allowed {
-		ignore, revalidate, maxAge := defineCacheControl(response.Header)
+		var buf bytes.Buffer
+		tee := io.TeeReader(response.Body, &buf)
 
-		if ignore != true {
+		if err == nil {
+			for name := range head.Header {
+				w.Header().Set(name, head.Header.Get(name))
+			}
+			io.Copy(w, tee)
 
-			// Retrieve file from host
-			response, err := http.Get(originURL)
-			if err == nil {
-
+			allowed := verifyContentType(head.Header)
+			ignore, revalidate, maxAge := defineCacheControl(head.Header)
+			if allowed == true && ignore != true {
 				// Create directories
 				fileDir := filepath.Dir(localFile)
 				if os.MkdirAll(fileDir, 0755) == nil {
@@ -53,7 +59,7 @@ func verifyAndRetrieveFile(localFile string, originURL string) {
 					defer output.Close()
 
 					// Write data to file
-					n, err := io.Copy(output, response.Body)
+					n, err := io.Copy(output, &buf)
 					if err != nil {
 						fmt.Println("Error while writing", fileDir, "\n-", err)
 						return
@@ -69,21 +75,15 @@ func verifyAndRetrieveFile(localFile string, originURL string) {
 						Timestamp:  time.Now().Unix(),
 						MaxAge:     int64(maxAge),
 						Revalidate: revalidate,
-						ETAG:       response.Header.Get("etag"),
-						Header:     response.Header}
+						ETAG:       head.Header.Get("etag"),
+						Header:     head.Header}
 
 					file.Register()
-
-				} else {
-					fmt.Println("Unable to create directory for cache file!")
 				}
-			} else {
-				fmt.Println("Error while downloading", originURL, "\n-", err)
-				return
 			}
-			defer response.Body.Close()
-
-			return
+		} else {
+			fmt.Println("Error while downloading", originURL, "\n-", err)
+			http.Redirect(w, r, originURL, 302)
 		}
 	}
 }
